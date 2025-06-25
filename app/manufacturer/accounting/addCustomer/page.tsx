@@ -125,7 +125,8 @@ export default function RetailerPage() {
     setError("");
     setMessage("");
     try {
-      const res = await fetchWithAuth(`${API_URL}/retailers/add/`, {
+      const companyId = localStorage.getItem("company_id");
+      const res = await fetchWithAuth(`${API_URL}/retailers/add/?company=${companyId}`, {
         method: "POST",
         body: JSON.stringify({
           ...form,
