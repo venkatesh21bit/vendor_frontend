@@ -13,7 +13,7 @@ Welcome to the **ERP UI Repository** for our intelligent supply chain management
 
 ## 🌐 Role-Based Dashboards
 
-### 🧭 Manager Dashboard
+### 🧭 Manufacturer Dashboard
 - Real-time **stock levels**, **sales**, and **order tracking**.
 - **Auto-order allocation system** to assign tasks to employees intelligently.
 - **Reports and analytics** with visualizations like bar charts and graphs.
