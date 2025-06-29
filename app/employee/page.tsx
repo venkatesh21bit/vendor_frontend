@@ -1,49 +1,18 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { OrdersTable } from "@/components/employee/OrdersTable";
 import { OrderDetails } from "@/components/employee/OrderDetails";
 import { DeliveryStatus } from "@/components/employee/DeliveryStatus";
 import { CancelOrderDialog } from "@/components/employee/CancelOrderDialog";
 import { DeliveryOrder } from "@/components/employee/types";
-import { API_URL ,fetchWithAuth} from "@/utils/auth_fn";
+import { API_URL, fetchWithAuth } from "@/utils/auth_fn";
+
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
-
-const getRefreshToken = () => localStorage.getItem("refresh_token");
-
-const refreshAccessToken = async (): Promise<string | null> => {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
-
-  try {
-    const response = await fetch(`${API_URL}/token/refresh/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh: refreshToken }),
-    });
-
-    if (!response.ok) {
-      console.error("Failed to refresh token");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      return null;
-    }
-
-    const data = await response.json();
-    if (data.access) {
-      localStorage.setItem("access_token", data.access);
-      return data.access;
-    }
-  } catch (error) {
-    console.error("Error refreshing token:", error);
-  }
-
-  return null;
-};
 
 export default function EmployeePage({ params }: PageProps) {
   const [mounted, setMounted] = useState(false);
@@ -54,8 +23,13 @@ export default function EmployeePage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
 
-  
+  // Resolve params Promise
+  useEffect(() => {
+    params.then(setResolvedParams);
+  }, [params]);
+
   useEffect(() => {
     async function fetchEmployeeId() {
       try {
