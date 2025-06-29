@@ -320,6 +320,10 @@ return (
                   name="available_quantity"
                   value={form.available_quantity}
                   onChange={handleFormChange}
+                  onWheel={(e) => {
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  min={0}
                   required
                   className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
                 />
@@ -333,6 +337,10 @@ return (
                   name="price"
                   value={form.price}
                   onChange={handleFormChange}
+                  onWheel={(e) => {
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  min={0}
                   required
                   className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
                 />
@@ -411,6 +419,10 @@ return (
                   name="total_shipped"
                   value={form.total_shipped}
                   onChange={handleFormChange}
+                  onWheel={(e) => {
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  min={0}
                   className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
                 />
               </div>
@@ -423,6 +435,10 @@ return (
                   name="total_required_quantity"
                   value={form.total_required_quantity}
                   onChange={handleFormChange}
+                  onWheel={(e) => {
+                    (e.target as HTMLInputElement).blur();
+                  }}
+                  min={0}
                   className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
                 />
               </div>
