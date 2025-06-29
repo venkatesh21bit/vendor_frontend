@@ -72,7 +72,7 @@ An edge AI package powers vision-based automation:
 
 ---
 
-## 🛠️ Backend Overview (Handled Privately in Separate Repo)
+## 🛠️ Backend Overview (Deployed and Handled Privately in Separate Repository)
 ## 📺 Demo Preview
 
 ![Demo](public/IOT-Demo.gif)
