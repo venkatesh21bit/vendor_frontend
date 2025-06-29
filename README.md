@@ -1,4 +1,4 @@
-# 📦 ERP Supply Chain Management System — Frontend
+# 📦 Vendor -- ERP Supply Chain Management System — Frontend
 
 Welcome to the **ERP UI Repository** for our intelligent supply chain management platform. This system streamlines stock tracking, order management, and delivery operations — tailored for Managers, Employees, and Retailers with a smart, role-based interface.
 
@@ -25,7 +25,7 @@ Designed with usability, clarity, and efficiency in mind. Each user type gets a 
 
 ---
 
-## 🛠️ Backend Overview (Handled in Separate Repo)
+## 🛠️ Backend Overview (Handled Privately in Separate Repo)
 
 > Built using Django and Django REST Framework — logic and automation powered from the backend.
 
@@ -60,26 +60,25 @@ Designed with usability, clarity, and efficiency in mind. Each user type gets a 
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | HTML, CSS, JavaScript, React / Bootstrap |
+| **Frontend** |  TypeScript, TailwindCSS, React |
 | **Backend** | Django, Django REST Framework |
 | **Database** | PostgreSQL |
 | **IoT / AI** | IMX500, OpenCV, YOLOv5, MobileNet |
-| **Chatbot (Optional)** | DeepseekAI API / Dialogflow / Rasa |
-| **Deployment** | Docker, Gunicorn, Nginx |
+| **Deployment** | Docker, Gunicorn |
 
 ---
 
 ## 🚀 Getting Started
 
-> Note: This repository is frontend only. Ensure the backend service is up and API endpoints are reachable.
+> Note: This repository is frontend only. 
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/your-erp-frontend.git
-cd your-erp-frontend
+git clone https://github.com/Vendor-Innovate-Solutions/Vendor-frontend
+cd Vendor-frontend
 
 # Install dependencies (if React-based)
-npm install
+npm i
 
-# Run development server
-npm start
+# Run in local server
+npm run dev
