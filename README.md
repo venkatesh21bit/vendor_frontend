@@ -1,27 +1,74 @@
 # 📦 Vendor -- ERP Supply Chain Management System — Frontend
 
-Welcome to the **ERP UI Repository** for our intelligent supply chain management platform. This system streamlines stock tracking, order management, and delivery operations — tailored for Managers, Employees, and Retailers with a smart, role-based interface.
+Welcome to the **ERP UI Repository** for our intelligent supply chain management platform. This system streamlines stock tracking, order management, and delivery operations — tailored for Manufacturer, Employees, and Retailers with a smart, role-based interface.
+
+---
+# Features
+## 🔐 Authentication & Access Control
+
+- **Login Page**: Secure login system with Django access token authentication.
+- **User Roles**: Manufacturer, Employee, and Retailer dashboards based on login credentials.
 
 ---
 
-## 🌐 UI/UX Dashboards
+## 🌐 Role-Based Dashboards
 
-Designed with usability, clarity, and efficiency in mind. Each user type gets a dedicated experience:
+### 🧭 Manager Dashboard
+- Real-time **stock levels**, **sales**, and **order tracking**.
+- **Auto-order allocation system** to assign tasks to employees intelligently.
+- **Reports and analytics** with visualizations like bar charts and graphs.
 
-### 🧑‍💼 Manager Dashboard (Inventory Overview & Control)
-- 📊 Real-time stock levels
-- 🔔 Order alerts and auto-assignments
-- 📈 Reports and analytics interface
+### 🚚 Employee Dashboard
+- **Assigned delivery tasks** and order fulfillment interface.
+- **Shipping details** and package tracking module.
+- Real-time **instructions** and update system.
 
-### 👷 Employee Dashboard (Supply Operations)
-- 📦 Assigned tasks and delivery schedules
-- ✅ Status updates for order fulfillment
-- 📡 Real-time instructions and reporting tools
+### 🛒 Retailer Dashboard
+- Browse and **place orders** based on available stock.
+- Track **order status** with live updates.
+- Instant **notifications** on fulfillment or delays.
 
-### 🛒 Retailer Dashboard (Buyer Interaction Portal)
-- 📝 Place orders from live stock
-- 🚚 Track order fulfillment status
-- ⚠️ Instant alerts on delays or confirmations
+---
+
+## 📦 Stock Management Module
+
+- **Stock Count**: Inventory metrics and real-time count.
+- **Stock Overview**: Product availability and movement.
+- **Stock Overview Graph**: Visual chart of supply and demand.
+- **High Demand Alerts**: AI-based notification of fast-moving SKUs.
+- **Add Product**: Interface for registering new products.
+
+---
+
+## 💰 Accounting & Billing
+
+- **Create New Bill**: Generate bills and track invoices.
+- **Add New Customer**: Customer creation and CRM module.
+- **Customer Invoices**: View and manage past invoices.
+- **Vendor Bills**: Manage purchase-side bills from suppliers.
+- **Track Payments**: Visual payment tracking with due alerts.
+- **Configure Documents**: Customize invoice/bill formats.
+
+---
+
+## 👤 User Profile & Configuration
+
+- **User Details**: Update personal and role-based information.
+- **Third-party Integration**: Connect with external systems (e.g., accounting APIs, logistics).
+- **Company Configuration**:
+  - **Create Company**
+  - **Manage Company Details**
+
+---
+
+## 🧠 IoT & AI Integration
+
+> *(via IMX500 Sensor – on Backend)*  
+An edge AI package powers vision-based automation:
+- **QR & Box Detection** for order tracking
+- **Defect/Mismatch Detection** for quality assurance
+- **Low-latency edge inference** using OpenCV, YOLOv5, and MobileNet
+- Data transmitted via MQTT/HTTP
 
 ---
 
@@ -52,7 +99,7 @@ Designed with usability, clarity, and efficiency in mind. Each user type gets a 
 
 ### 🌐 Edge Communication
 - AI runs on-device (Sony IMX500) with low latency.
-- Uses MQTT/HTTP to send real-time insights to the backend.
+- Uses MQTT to send real-time insights to the backend.
 
 ---
 
