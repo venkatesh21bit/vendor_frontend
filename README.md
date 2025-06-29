@@ -75,7 +75,7 @@ An edge AI package powers vision-based automation:
 ## 🛠️ Backend Overview (Handled Privately in Separate Repo)
 ## 📺 Demo Preview
 
-![Demo](https://media3.giphy.com/media/JtFTkX01FthISosmBC/giphy.gif)
+![Demo](public/IOT-Demo.gif)
 
 > Built using Django and Django REST Framework — logic and automation powered from the backend.
 
