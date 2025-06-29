@@ -125,10 +125,11 @@ This comprehensive guide is designed to help you get started with the frontend o
 
 - 🌐 Navigate to the frontend folder
   ```bash
-  cd frontend
+  git clone https://github.com/Vendor-Innovate-Solutions/Vendor-frontend
+  cd Vendor-frontend
 - 📥 **Install dependencies**
   ```bash
-  npm install
+  npm i
 - 🔄 **Start the development server**
   ```bash
   npm run dev
