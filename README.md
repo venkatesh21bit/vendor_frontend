@@ -111,7 +111,7 @@ An edge AI package powers vision-based automation:
 | **Backend** | Django, Django REST Framework |
 | **Database** | PostgreSQL |
 | **IoT / AI** | IMX500, OpenCV, YOLOv5, MobileNet |
-| **Deployment** | Docker, Gunicorn |
+| **Deployment** | Railway, Docker, Gunicorn |
 
 ---
 
