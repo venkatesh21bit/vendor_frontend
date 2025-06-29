@@ -68,17 +68,28 @@ Designed with usability, clarity, and efficiency in mind. Each user type gets a 
 
 ---
 
-## 🚀 Getting Started
+# 🚀 Frontend Setup Guide
+**For Developers to help with Easy Installation, Configuration, and Seamless Operations**
 
-> Note: This repository is frontend only. 
+## 🧩 Overview
+This comprehensive guide is designed to help you get started with the frontend of the Ignyte project. It provides step-by-step instructions for installation, configuration, and running the development server, ensuring a smooth setup process for developers at all experience levels.
 
-```bash
-# Clone repository
-git clone https://github.com/Vendor-Innovate-Solutions/Vendor-frontend
-cd Vendor-frontend
-
-# Install dependencies (if React-based)
-npm i
-
-# Run in local server
-npm run dev
+## 📦 Setup Instructions
+Make sure the backend is running (if needed for API calls)
+- 🌐 Navigate to the frontend folder
+  ```bash
+  cd frontend
+- 📥 **Install dependencies**
+  ```bash
+  npm install
+- 🔄 **Start the development server**
+  ```bash
+  npm run dev
+- 🖥️ **Visit in browser Open**
+  ```bash
+  http://localhost:3000
+>**Note**: The backend allows only port 3000 by default 
+- 📋 **Prerequisites**
+  ```bash
+  Node.js (v16+ recommended)
+  npm (comes bundled with Node.js)
