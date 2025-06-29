@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { FileText } from "lucide-react"
 import { useReactToPrint } from "react-to-print"
-
+import html2pdf from "html2pdf.js";
 // Fallback Button Component using div to avoid button conflicts
 type FallbackButtonProps = {
   children: React.ReactNode
@@ -17,42 +17,34 @@ type FallbackButtonProps = {
   disabled?: boolean
 }
 
-const FallbackButton: React.FC<FallbackButtonProps> = ({ 
-  children, 
-  onClick, 
-  variant = "default", 
-  size = "default", 
+const FallbackButton: React.FC<FallbackButtonProps> = ({
+  children,
+  onClick,
+  variant = "default",
+  size = "default",
   className = "",
   disabled = false
 }) => {
-  // ...existing code...
-// ...existing code...
-const handleClick = async (
-  e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>
-) => {
-  e.preventDefault()
-  e.stopPropagation()
-  if (onClick && !disabled) {
-    try {
-      const result = onClick(e)
-      // Only await if result is a Promise
-      function isPromise<T = unknown>(val: unknown): val is Promise<T> {
-        return !!val && typeof (val as { then?: unknown }).then === "function"
+  const handleClick = async (
+    e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onClick && !disabled) {
+      try {
+        const result = onClick(e)
+        if (
+          result !== null &&
+          result !== undefined &&
+          typeof result === "object" && result !== null && "then" in result && typeof (result as Promise<unknown>).then === "function"
+        ) {
+          await result
+        }
+      } catch (error) {
+        console.error('Button onClick error:', error)
       }
-      if (
-        result !== null &&
-        result !== undefined &&
-        isPromise(result)
-      ) {
-        await result
-      }
-    } catch (error) {
-      console.error('Button onClick error:', error)
     }
   }
-}
-// ...existing code...
-// ...existing code...
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -62,22 +54,22 @@ const handleClick = async (
   }
 
   let buttonClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 select-none"
-  
+
   if (disabled) {
     buttonClasses += " opacity-50 cursor-not-allowed"
   } else {
     buttonClasses += " cursor-pointer"
   }
-  
+
   // Variant classes
   if (variant === "outline") {
-    buttonClasses += " border border-gray-300 bg-transparent text-white hover:bg-gray-100 hover:text-gray-900"
+    buttonClasses += " border border-gray-300 bg-transparent text-black hover:bg-gray-100 hover:text-black"
   } else if (variant === "ghost") {
-    buttonClasses += " bg-transparent text-white hover:bg-gray-100 hover:text-gray-900"
+    buttonClasses += " bg-transparent text-black hover:bg-gray-100 hover:text-black"
   } else {
-    buttonClasses += " bg-blue-600 text-white hover:bg-blue-700"
+    buttonClasses += " bg-black text-white hover:bg-gray-800"
   }
-  
+
   // Size classes
   if (size === "sm") {
     buttonClasses += " h-9 px-3 py-1.5"
@@ -86,11 +78,11 @@ const handleClick = async (
   } else {
     buttonClasses += " h-10 px-4 py-2"
   }
-  
+
   if (className) {
     buttonClasses += " " + className
   }
-  
+
   return (
     <div
       role="button"
@@ -165,10 +157,7 @@ export default function VendorBills() {
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null)
   const [showModal, setShowModal] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
-  const [shouldPrint, setShouldPrint] = useState(false)
-  const [shouldDownload, setShouldDownload] = useState(false)
-  const [isPrintReady, setIsPrintReady] = useState(false)
-
+  
   useEffect(() => {
     const fetchBills = async () => {
       try {
@@ -178,7 +167,7 @@ export default function VendorBills() {
           console.warn("Missing token or company ID")
           return
         }
-        
+
         const res = await fetchWithAuth(`${API_URL}/invoices/?company=${companyId}`)
         if (res.ok) {
           const data = await res.json()
@@ -193,31 +182,32 @@ export default function VendorBills() {
     fetchBills()
   }, [])
 
+  // Updated print handler using contentRef (new API)
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: selectedBill ? selectedBill.invoice_number : "Invoice",
-    onBeforePrint: async () => {
+    documentTitle: selectedBill ? `Invoice-${selectedBill.invoice_number}` : "Invoice",
+    onBeforePrint: () => {
+      console.log("Preparing to print...")
       if (printRef.current) {
         const style = document.createElement("style")
+        style.setAttribute("id", "bw-print-style")
         style.innerHTML = `
           @media print {
-            body { 
-              background-color: #1E40AF !important; 
-              color: white !important; 
-              -webkit-print-color-adjust: exact; 
-              print-color-adjust: exact;
+            body, .print-bw, .print-bw * {
+              background: #fff !important;
+              color: #000 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              box-shadow: none !important;
             }
-            .bg-[#0F172A] { 
-              background-color: #1E40AF !important; 
-              color: white !important; 
+            table, tr, td, th {
+              border: 1px solid #000 !important;
+              color: #000 !important;
+              background: #fff !important;
             }
-            table, tr, td, th { 
-              border: 1px solid white !important; 
-              color: white !important; 
-            }
-            * { 
-              -webkit-print-color-adjust: exact; 
-              print-color-adjust: exact; 
+            th {
+              background: #eee !important;
+              color: #000 !important;
             }
           }
         `
@@ -226,89 +216,46 @@ export default function VendorBills() {
       return Promise.resolve()
     },
     onAfterPrint: () => {
-      const existingStyle = document.head.querySelector("style")
-      if (existingStyle) {
-        document.head.removeChild(existingStyle)
+      console.log("Print completed")
+      const style = document.getElementById("bw-print-style")
+      if (style) {
+        document.head.removeChild(style)
       }
     },
   })
 
+  // Black & White download handler
   const handleDownload = React.useCallback(() => {
-    if (!selectedBill || !printRef.current) return
-    
-    try {
-      const element = printRef.current.cloneNode(true) as HTMLDivElement
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>${selectedBill.invoice_number}</title>
-          <style>
-            body { 
-              background-color: #1E40AF; 
-              color: white; 
-              margin: 0; 
-              padding: 20px; 
-              font-family: Arial, sans-serif;
-            }
-            .bg-[#0F172A] { 
-              background-color: #1E40AF !important; 
-              color: white !important; 
-            }
-            table, tr, td, th { 
-              border: 1px solid white; 
-              color: white; 
-              border-collapse: collapse;
-            }
-            th { background-color: #1E90FF; }
-            .text-blue-400 { color: white; }
-            @media print {
-              body { 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
-              }
-            }
-          </style>
-        </head>
-        <body>${element.outerHTML}</body>
-        </html>
-      `
-      const blob = new Blob([html], { type: "text/html" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `${selectedBill.invoice_number}.html`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error("Download failed:", error)
-    }
-  }, [selectedBill, printRef])
+  if (!selectedBill || !printRef.current) {
+    console.error("Cannot download: missing bill or ref");
+    return;
+  }
 
-  useEffect(() => {
-    if (shouldPrint && showModal && printRef.current && selectedBill && isPrintReady) {
-      if (typeof handlePrint === "function") {
-        handlePrint()
-        setShouldPrint(false)
-        setIsPrintReady(false)
-      } else {
-        console.warn("handlePrint is not a function, skipping print action")
-        setShouldPrint(false)
-      }
-    }
-  }, [shouldPrint, showModal, handlePrint, selectedBill, isPrintReady])
+  // Optional: Add a class for print styling
+  printRef.current.classList.add("print-bw");
 
-  useEffect(() => {
-    if (shouldDownload && showModal && printRef.current) {
-      setTimeout(() => {
-        handleDownload()
-        setShouldDownload(false)
-      }, 200)
-    }
-  }, [shouldDownload, showModal, handleDownload])
+  // PDF options for better alignment and look
+  const opt = {
+    margin:       [0.5, 0.5, 0.5, 0.5], // top, left, bottom, right in inches
+    filename:     `Invoice-${selectedBill.invoice_number}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf()
+    .set(opt)
+    .from(printRef.current)
+    .save()
+    .then(() => {
+      if (printRef.current) printRef.current.classList.remove("print-bw");
+      console.log("PDF download completed");
+    })
+    .catch((error: any) => {
+      if (printRef.current) printRef.current.classList.remove("print-bw");
+      console.error("PDF download failed:", error);
+    });
+}, [selectedBill]);
 
   const openBill = (bill: Bill) => {
     setSelectedBill(bill)
@@ -318,19 +265,28 @@ export default function VendorBills() {
   const closeModal = () => {
     setShowModal(false)
     setSelectedBill(null)
-    setShouldPrint(false)
-    setShouldDownload(false)
-    setIsPrintReady(false)
   }
 
   const handlePrintAction = (bill: Bill) => {
-    openBill(bill)
-    setShouldPrint(true)
+    setSelectedBill(bill)
+    setShowModal(true)
+    // Wait for modal to render before printing
+    setTimeout(() => {
+      if (printRef.current) {
+        handlePrint()
+      } else {
+        console.error("Print ref not available")
+      }
+    }, 500)
   }
 
   const handleDownloadAction = (bill: Bill) => {
-    openBill(bill)
-    setShouldDownload(true)
+    setSelectedBill(bill)
+    setShowModal(true)
+    // Wait for modal to render before downloading
+    setTimeout(() => {
+      handleDownload()
+    }, 500)
   }
 
   const handleNavigateBack = () => {
@@ -351,20 +307,19 @@ export default function VendorBills() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <FallbackButton 
-        variant="outline" 
-        onClick={handleNavigateBack} 
-        className="mb-6"
+      <FallbackButton
+        variant="outline"
+        onClick={handleNavigateBack}
+        className="mb-6 text-white"
       >
         <FileText className="mr-2 h-4 w-4" />
         Back
       </FallbackButton>
-
-      <Card className="bg-[#1E293B] border-0">
+      <Card className="bg-[#0F172A] border-0">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-xl text-blue-400">Vendor Bills</CardTitle>
-          <FallbackButton 
-            variant="default" 
+          <CardTitle className="text-xl text-white">Vendor Bills</CardTitle>
+          <FallbackButton
+            variant="default"
             onClick={handleNavigateNewBill}
           >
             New Bill
@@ -375,7 +330,7 @@ export default function VendorBills() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-blue-400 text-sm">
+                  <tr className="text-white text-sm">
                     <th className="text-left p-2">Invoice No</th>
                     <th className="text-left p-2">Retailer</th>
                     <th className="text-right p-2">Amount</th>
@@ -386,7 +341,7 @@ export default function VendorBills() {
                 </thead>
                 <tbody>
                   {bills.map((bill) => (
-                    <tr key={bill.invoice_number} className="text-white border-t border-blue-500/20">
+                    <tr key={bill.invoice_number} className="text-white border-t border-white/20">
                       <td className="p-2">{bill.invoice_number}</td>
                       <td className="p-2">
                         {typeof bill.Retailer === "object"
@@ -397,13 +352,13 @@ export default function VendorBills() {
                       <td className="p-2">{bill.invoice_date ? new Date(bill.invoice_date).toLocaleDateString() : ""}</td>
                       <td className="p-2">{bill.payment_status}</td>
                       <td className="p-2 text-right space-x-2">
-                        <FallbackButton variant="outline" size="sm" onClick={() => openBill(bill)}>
+                        <FallbackButton variant="outline" size="sm" onClick={() => openBill(bill)} className="text-white">
                           View
                         </FallbackButton>
-                        <FallbackButton variant="outline" size="sm" onClick={() => handlePrintAction(bill)}>
+                        <FallbackButton variant="outline" size="sm" onClick={() => handlePrintAction(bill)} className="text-white">
                           Print
                         </FallbackButton>
-                        <FallbackButton variant="outline" size="sm" onClick={() => handleDownloadAction(bill)}>
+                        <FallbackButton variant="outline" size="sm" onClick={() => handleDownloadAction(bill)} className="text-white">
                           Download
                         </FallbackButton>
                       </td>
@@ -417,19 +372,18 @@ export default function VendorBills() {
           )}
         </CardContent>
       </Card>
-
       {/* Bill Preview Modal */}
       {showModal && selectedBill && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-[#0F172A] rounded-lg p-8 max-w-3xl w-full relative max-h-[90vh] overflow-y-auto">
-            <button 
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl leading-none" 
+          <div className="bg-white rounded-lg p-8 max-w-3xl w-full relative max-h-[90vh] overflow-y-auto">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl leading-none"
               onClick={closeModal}
               aria-label="Close modal"
             >
               ×
             </button>
-            <div ref={printRef} className="text-white p-6 space-y-6">
+            <div ref={printRef} className="text-black p-6 space-y-6 print-bw">
               {/* Company and Invoice Heading */}
               <div className="flex justify-between mb-6">
                 <div>
@@ -444,10 +398,10 @@ export default function VendorBills() {
                   {selectedBill.company?.phone && <div className="text-sm">Phone: {selectedBill.company.phone}</div>}
                 </div>
                 <div className="flex flex-col items-end justify-between">
-                  <div className="text-3xl font-bold text-blue-400 mb-2">INVOICE</div>
+                  <div className="text-3xl font-bold text-black mb-2">INVOICE</div>
                 </div>
               </div>
-              
+
               {/* Retailer and Invoice Details Side by Side */}
               <div className="flex justify-between mb-4 gap-8">
                 <div>
@@ -501,54 +455,54 @@ export default function VendorBills() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Products Table */}
-              <table className="w-full text-sm text-white mb-2 border border-white rounded">
+              <table className="w-full text-sm text-black mb-2 border border-black rounded">
                 <thead>
-                  <tr className="bg-blue-900">
-                    <th className="p-2 border border-white">#</th>
-                    <th className="p-2 border border-white">Product</th>
-                    <th className="p-2 border border-white">HSN</th>
-                    <th className="p-2 border border-white">Qty</th>
-                    <th className="p-2 border border-white">Rate</th>
-                    <th className="p-2 border border-white">Taxable</th>
-                    <th className="p-2 border border-white">GST %</th>
-                    <th className="p-2 border border-white">CGST</th>
-                    <th className="p-2 border border-white">SGST</th>
-                    <th className="p-2 border border-white">IGST</th>
-                    <th className="p-2 border border-white">Total</th>
+                  <tr className="bg-gray-200">
+                    <th className="p-2 border border-black">#</th>
+                    <th className="p-2 border border-black">Product</th>
+                    <th className="p-2 border border-black">HSN</th>
+                    <th className="p-2 border border-black">Qty</th>
+                    <th className="p-2 border border-black">Rate</th>
+                    <th className="p-2 border border-black">Taxable</th>
+                    <th className="p-2 border border-black">GST %</th>
+                    <th className="p-2 border border-black">CGST</th>
+                    <th className="p-2 border border-black">SGST</th>
+                    <th className="p-2 border border-black">IGST</th>
+                    <th className="p-2 border border-black">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedBill.items?.map((item: BillItem, idx: number) => (
-                    <tr key={idx} className="bg-[#1E40AF] border-b border-white">
-                      <td className="p-2 border border-white">{idx + 1}</td>
-                      <td className="p-2 border border-white">{item.name || item.Product_name || ""}</td>
-                      <td className="p-2 border border-white">{item.hsn_code}</td>
-                      <td className="p-2 border border-white">{item.quantity}</td>
-                      <td className="p-2 border border-white">{item.price?.toFixed ? item.price.toFixed(2) : item.price}</td>
-                      <td className="p-2 border border-white">
+                    <tr key={idx} className="bg-white border-b border-black">
+                      <td className="p-2 border border-black">{idx + 1}</td>
+                      <td className="p-2 border border-black">{item.name || item.Product_name || ""}</td>
+                      <td className="p-2 border border-black">{item.hsn_code}</td>
+                      <td className="p-2 border border-black">{item.quantity}</td>
+                      <td className="p-2 border border-black">{item.price?.toFixed ? item.price.toFixed(2) : item.price}</td>
+                      <td className="p-2 border border-black">
                         {item.taxable_value?.toFixed ? item.taxable_value.toFixed(2) : item.taxable_value}
                       </td>
-                      <td className="p-2 border border-white">{item.gst_rate}</td>
-                      <td className="p-2 border border-white">{item.cgst?.toFixed ? item.cgst.toFixed(2) : item.cgst}</td>
-                      <td className="p-2 border border-white">{item.sgst?.toFixed ? item.sgst.toFixed(2) : item.sgst}</td>
-                      <td className="p-2 border border-white">{item.igst?.toFixed ? item.igst.toFixed(2) : item.igst}</td>
-                      <td className="p-2 border border-white">
+                      <td className="p-2 border border-black">{item.gst_rate}</td>
+                      <td className="p-2 border border-black">{item.cgst?.toFixed ? item.cgst.toFixed(2) : item.cgst}</td>
+                      <td className="p-2 border border-black">{item.sgst?.toFixed ? item.sgst.toFixed(2) : item.sgst}</td>
+                      <td className="p-2 border border-black">{item.igst?.toFixed ? item.igst.toFixed(2) : item.igst}</td>
+                      <td className="p-2 border border-black">
                         {item.taxable_value && item.cgst && item.sgst && item.igst
                           ? (
-                              Number(item.taxable_value) +
-                              Number(item.cgst) +
-                              Number(item.sgst) +
-                              Number(item.igst)
-                            ).toFixed(2)
+                            Number(item.taxable_value) +
+                            Number(item.cgst) +
+                            Number(item.sgst) +
+                            Number(item.igst)
+                          ).toFixed(2)
                           : ""}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              
+
               {/* Totals - Aligned Left */}
               <div className="flex flex-col gap-2 mt-4 max-w-md w-full">
                 <div className="flex justify-between w-full">
@@ -577,23 +531,23 @@ export default function VendorBills() {
                     {selectedBill.total_igst?.toFixed ? selectedBill.total_igst.toFixed(2) : selectedBill.total_igst}
                   </span>
                 </div>
-                <div className="flex justify-between w-full text-lg font-bold mt-2 border-t border-white pt-2">
+                <div className="flex justify-between w-full text-lg font-bold mt-2 border-t border-black pt-2">
                   <span className="text-left">Grand Total:</span>
                   <span className="text-right">
                     {selectedBill.grand_total?.toFixed ? selectedBill.grand_total.toFixed(2) : selectedBill.grand_total}
                   </span>
                 </div>
               </div>
-              
+
               {/* Note and Signature */}
               <div className="flex justify-between items-end mt-8">
                 <div>
                   <div className="font-semibold">Note:</div>
-                  <div className="text-sm text-gray-300">Thank you for your business!</div>
+                  <div className="text-sm text-gray-700">Thank you for your business!</div>
                 </div>
                 <div className="text-right">
                   <div className="font-semibold">Authorized Signature</div>
-                  <div className="w-40 h-12 border-b border-gray-400 mx-0"></div>
+                  <div className="w-40 h-12 border-b border-gray-700 mx-0"></div>
                 </div>
               </div>
             </div>

@@ -24,4 +24,22 @@
     }
   }
 
-  
+/* Add this to your global CSS or in a <style jsx global> block */
+.print-bw, .print-bw * {
+  background: #fff !important;
+  color: #000 !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+}
+.print-bw table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+.print-bw th, .print-bw td {
+  border: 1px solid #000 !important;
+  padding: 4px 6px !important;
+  text-align: left !important;
+}
+.print-bw th {
+  background: #eee !important;
+}

@@ -182,68 +182,96 @@ useEffect(() => {
       setNotification("No company selected");
       return;
     }
-    // Prepare payload
-    const payload = {
-      ...formData,
-      company: Number(companyId), // Use companyId from localStorage
-      Retailer: formData.Retailer ? Number(formData.Retailer) : null,
-      invoice_date: formData.invoice_date,
-      is_einvoice_generated: formData.is_einvoice_generated,
-      qr_code: formData.qr_code ? "generate" : null,
-      total_taxable_value: Number(formData.total_taxable_value),
-      total_cgst: Number(formData.total_cgst),
-      total_sgst: Number(formData.total_sgst),
-      total_igst: Number(formData.total_igst),
-      grand_total: Number(formData.grand_total),
-      items: formData.items.map(item => ({
-        ...item,
-        Product: item.Product ? Number(item.Product) : null,
-        quantity: Number(item.quantity),
-        taxable_value: Number(item.taxable_value),
-        gst_rate: Number(item.gst_rate),
-        cgst: Number(item.cgst),
-        sgst: Number(item.sgst),
-        igst: Number(item.igst),
-      })),
+    // Calculate items with all values
+  const items = formData.items.map(item => {
+    const prod = products.find(p => String(p.product_id) === String(item.Product));
+    const quantity = Number(item.quantity) || 0;
+    const price = prod ? Number(prod.price) : 0;
+    const taxable_value = price * quantity;
+    const cgst_rate = prod ? Number(prod.cgst_rate) : 0;
+    const sgst_rate = prod ? Number(prod.sgst_rate) : 0;
+    const igst_rate = prod ? Number(prod.igst_rate) : 0;
+    const cgst = taxable_value * cgst_rate / 100;
+    const sgst = taxable_value * sgst_rate / 100;
+    const igst = taxable_value * igst_rate / 100;
+    const gst_rate = cgst_rate + sgst_rate + igst_rate;
+    return {
+      ...item,
+      Product: item.Product ? Number(item.Product) : null,
+      price,
+      quantity,
+      taxable_value,
+      gst_rate,
+      cgst,
+      sgst,
+      igst,
+      hsn_code: prod?.hsn_code || "",
     };
-    try {
-      const res = await fetchWithAuth(`${API_URL}/invoices/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-  setNotification("Bill created successfully");
-  let token = getAuthToken();
-  const companyId = localStorage.getItem("company_id");
-  if (token && companyId) {
-    // Fetch new count and update invoice number
-    const invoiceData = await fetch(`${API_URL}/invoices/?company=${companyId}`, {
-      headers: { Authorization: `Bearer ${token}` }
+  });
+
+  // Calculate totals
+  const total_taxable_value = items.reduce((sum, i) => sum + i.taxable_value, 0);
+  const total_cgst = items.reduce((sum, i) => sum + i.cgst, 0);
+  const total_sgst = items.reduce((sum, i) => sum + i.sgst, 0);
+  const total_igst = items.reduce((sum, i) => sum + i.igst, 0);
+  const grand_total = total_taxable_value + total_cgst + total_sgst + total_igst;
+
+  // Prepare payload with calculated values
+  const payload = {
+    ...formData,
+    company: Number(companyId),
+    Retailer: formData.Retailer ? Number(formData.Retailer) : null,
+    invoice_date: formData.invoice_date,
+    is_einvoice_generated: formData.is_einvoice_generated,
+    qr_code: formData.qr_code ? "generate" : null,
+    total_taxable_value,
+    total_cgst,
+    total_sgst,
+    total_igst,
+    grand_total,
+    items,
+  };
+
+  try {
+    const res = await fetchWithAuth(`${API_URL}/invoices/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
     });
-    let count = 0;
-    if (invoiceData.ok) {
-      const data = await invoiceData.json();
-      count = data.count || 0;
-    }
-    setInvoiceCount(count);
-    setFormData(prev => ({
-      ...prev,
-      invoice_number: `INV-${count + 1}`,
-      // Optionally reset other fields here
-    }));
-  }
-  setTimeout(() => {
-    router.push('/manufacturer/accounting/vendorBills');
-  }, 2000);
-}
-    } catch {
+    if (res.ok) {
+      setNotification("Bill created successfully");
+      let token = getAuthToken();
+      const companyId = localStorage.getItem("company_id");
+      if (token && companyId) {
+        // Fetch new count and update invoice number
+        const invoiceData = await fetch(`${API_URL}/invoices/?company=${companyId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        let count = 0;
+        if (invoiceData.ok) {
+          const data = await invoiceData.json();
+          count = data.count || 0;
+        }
+        setInvoiceCount(count);
+        setFormData(prev => ({
+          ...prev,
+          invoice_number: `INV-${count + 1}`,
+          // Optionally reset other fields here
+        }));
+      }
+      setTimeout(() => {
+        router.push('/manufacturer/accounting/vendorBills');
+      }, 2000);
+    } else {
       setNotification("Failed to create bill");
     }
-  };
+  } catch {
+    setNotification("Failed to create bill");
+  }
+};
 
   // Bill preview helpers
   const previewCompanyObj = companyObj;
