@@ -68,7 +68,7 @@ An edge AI package powers vision-based automation:
 - **QR & Box Detection** for order tracking
 - **Defect/Mismatch Detection** for quality assurance
 - **Low-latency edge inference** using OpenCV, YOLOv5, and MobileNet
-- Data transmitted via MQTT/HTTP
+- Data transmitted via MQTT
 
 ---
 
