@@ -268,7 +268,9 @@ return (
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4 text-white">Add Product</h2>
+            <h2 className="text-lg font-semibold mb-4 text-white">
+              Add Product
+            </h2>
             <form onSubmit={handleAddProduct} className="space-y-4">
               <div>
                 <label className="block text-sm mb-1 text-blue-200">Name</label>
@@ -282,31 +284,37 @@ return (
                 />
               </div>
               <div>
-  <label className="block text-sm mb-1 text-blue-200">Category</label>
-  <div className="flex gap-2">
-    <select
-      name="category"
-      value={form.category}
-      onChange={handleFormChange}
-      className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-    >
-      <option value="">No Category</option>
-      {categories.map((cat) => (
-        <option key={cat.category_id} value={cat.category_id}>{cat.name}</option>
-      ))}
-    </select>
-    <button
-      type="button"
-      className="px-3 py-2 bg-blue-700 text-white rounded hover:bg-blue-800"
-      onClick={() => setShowCategoryModal(true)}
-      title="Add Category"
-    >
-      +
-    </button>
-  </div>
-</div>
+                <label className="block text-sm mb-1 text-blue-200">
+                  Category
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    name="category"
+                    value={form.category}
+                    onChange={handleFormChange}
+                    className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                  >
+                    <option value="">No Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.category_id} value={cat.category_id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="px-3 py-2 bg-blue-700 text-white rounded hover:bg-blue-800"
+                    onClick={() => setShowCategoryModal(true)}
+                    title="Add Category"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
               <div>
-                <label className="block text-sm mb-1 text-blue-200">Available Quantity</label>
+                <label className="block text-sm mb-1 text-blue-200">
+                  Available Quantity
+                </label>
                 <input
                   type="number"
                   name="available_quantity"
@@ -317,7 +325,9 @@ return (
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-blue-200">Price</label>
+                <label className="block text-sm mb-1 text-blue-200">
+                  Price
+                </label>
                 <input
                   type="number"
                   name="price"
@@ -328,7 +338,9 @@ return (
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-blue-200">Company</label>
+                <label className="block text-sm mb-1 text-blue-200">
+                  Company
+                </label>
                 <select
                   name="company"
                   value={form.company}
@@ -338,144 +350,181 @@ return (
                 >
                   <option value="">Select Company</option>
                   {companies.map((comp) => (
-                    <option key={comp.id} value={comp.id}>{comp.name}</option>
+                    <option key={comp.id} value={comp.id}>
+                      {comp.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="relative">
-  <label className="block text-sm mb-1 text-blue-200">Unit (UQC)</label>
-  <input
-    type="text"
-    placeholder="Type to search unit..."
-    value={unitSearch}
-    onChange={e => {
-      setUnitSearch(e.target.value);
-      setShowUnitDropdown(true);
-    }}
-    onFocus={() => setShowUnitDropdown(true)}
-    className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700 mb-2"
-    autoComplete="off"
-  />
-  {/* Custom dropdown - now positioned relative to this div */}
-  {showUnitDropdown && filteredUnits.length > 0 && (
-    <div className="absolute left-0 right-0 bg-gray-900 border border-gray-700 rounded w-full max-h-48 overflow-y-auto z-50">
-      {filteredUnits.map(uqc => (
-        <div
-          key={uqc.value}
-          className="px-3 py-2 cursor-pointer hover:bg-blue-800"
-          onClick={() => {
-            setForm({ ...form, unit: uqc.value });
-            setUnitSearch(uqc.label + " (" + uqc.value + ")");
-            setShowUnitDropdown(false);
-          }}
-        >
-          {uqc.label} ({uqc.value})
-        </div>
-      ))}
-    </div>
-  )}
-  {/* Show the selected unit as a read-only field */}
-  <input
-    type="text"
-    name="unit"
-    value={form.unit}
-    readOnly
-    className="w-full px-3 py-2 rounded bg-gray-700 text-white border border-gray-700 mt-2"
-    placeholder="Selected unit code"
-  />
-</div>
-              
-     
-        <div>
-          <label className="block text-sm mb-1 text-blue-200">Total Shipped</label>
-          <input
-            type="number"
-            name="total_shipped"
-            value={form.total_shipped}
-            onChange={handleFormChange}
-            className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1 text-blue-200">Total Required Quantity</label>
-          <input
-            type="number"
-            name="total_required_quantity"
-            value={form.total_required_quantity}
-            onChange={handleFormChange}
-            className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1 text-blue-200">HSN Code</label>
-          <input
-            type="text"
-            name="hsn_code"
-            value={form.hsn_code}
-            onChange={handleFormChange}
-            className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-sm mb-1 text-blue-200">CGST Rate (%)</label>
-            <input
-              type="number"
-              name="cgst_rate"
-              value={form.cgst_rate}
-              onChange={handleFormChange}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1 text-blue-200">SGST Rate (%)</label>
-            <input
-              type="number"
-              name="sgst_rate"
-              value={form.sgst_rate}
-              onChange={handleFormChange}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-sm mb-1 text-blue-200">IGST Rate (%)</label>
-            <input
-              type="number"
-              name="igst_rate"
-              value={form.igst_rate}
-              onChange={handleFormChange}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1 text-blue-200">Cess Rate (%)</label>
-            <input
-              type="number"
-              name="cess_rate"
-              value={form.cess_rate}
-              onChange={handleFormChange}
-              className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm mb-1 text-blue-200">Status</label>
-          <select
-            name="status"
-            value={form.status}
-            onChange={handleFormChange}
-            className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-          >
-            <option value="sufficient">Sufficient</option>
-            <option value="low">Low</option>
-            <option value="out_of_stock">Out of Stock</option>
-          </select>
-        </div>
+                <label className="block text-sm mb-1 text-blue-200">
+                  Unit (UQC)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Type to search unit..."
+                  value={unitSearch}
+                  onChange={(e) => {
+                    setUnitSearch(e.target.value);
+                    setShowUnitDropdown(true);
+                  }}
+                  onFocus={() => setShowUnitDropdown(true)}
+                  className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700 mb-2"
+                  autoComplete="off"
+                />
+                {/* Custom dropdown - now positioned relative to this div */}
+                {showUnitDropdown && filteredUnits.length > 0 && (
+                  <div className="absolute left-0 right-0 bg-gray-900 border border-gray-700 rounded w-full max-h-48 overflow-y-auto z-50">
+                    {filteredUnits.map((uqc) => (
+                      <div
+                        key={uqc.value}
+                        className="px-3 py-2 cursor-pointer hover:bg-blue-800"
+                        onClick={() => {
+                          setForm({ ...form, unit: uqc.value });
+                          setUnitSearch(uqc.label + " (" + uqc.value + ")");
+                          setShowUnitDropdown(false);
+                        }}
+                      >
+                        {uqc.label} ({uqc.value})
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Show the selected unit as a read-only field */}
+                <input
+                  type="text"
+                  name="unit"
+                  value={form.unit}
+                  readOnly
+                  className="w-full px-3 py-2 rounded bg-gray-700 text-white border border-gray-700 mt-2"
+                  placeholder="Selected unit code"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1 text-blue-200">
+                  Total Shipped
+                </label>
+                <input
+                  type="number"
+                  name="total_shipped"
+                  value={form.total_shipped}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-blue-200">
+                  Total Required Quantity
+                </label>
+                <input
+                  type="number"
+                  name="total_required_quantity"
+                  value={form.total_required_quantity}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-blue-200">
+                  HSN Code
+                </label>
+                <input
+                  type="text"
+                  name="hsn_code"
+                  value={form.hsn_code}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm mb-1 text-blue-200">
+                    CGST Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    name="cgst_rate"
+                    value={form.cgst_rate}
+                    onChange={handleFormChange}
+                    onWheel={(e) => {
+                      (e.target as HTMLInputElement).blur();
+                    }}
+                    min={0}
+                    className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1 text-blue-200">
+                    SGST Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    name="sgst_rate"
+                    value={form.sgst_rate}
+                    onChange={handleFormChange}
+                    onWheel={(e) => {
+                      (e.target as HTMLInputElement).blur();
+                    }}
+                    min={0}
+                    className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm mb-1 text-blue-200">
+                    IGST Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    name="igst_rate"
+                    value={form.igst_rate}
+                    onChange={handleFormChange}
+                    onWheel={(e) => {
+                      (e.target as HTMLInputElement).blur();
+                    }}
+                    min={0}
+                    className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1 text-blue-200">
+                    Cess Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    name="cess_rate"
+                    value={form.cess_rate}
+                    onChange={handleFormChange}
+                    onWheel={(e) => {
+                      (e.target as HTMLInputElement).blur();
+                    }}
+                    min={0}
+                    className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-blue-200">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={form.status}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
+                >
+                  <option value="sufficient">Sufficient</option>
+                  <option value="low">Low</option>
+                  <option value="out_of_stock">Out of Stock</option>
+                </select>
+              </div>
               {submitError && <p className="text-red-400">{submitError}</p>}
-              {submitSuccess && <p className="text-green-400">{submitSuccess}</p>}
+              {submitSuccess && (
+                <p className="text-green-400">{submitSuccess}</p>
+              )}
               <div className="flex gap-2 mt-4">
                 <button
                   type="submit"
@@ -499,7 +548,9 @@ return (
     {showCategoryModal && (
       <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
         <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-700">
-          <h2 className="text-lg font-semibold mb-4 text-white">Add Category</h2>
+          <h2 className="text-lg font-semibold mb-4 text-white">
+            Add Category
+          </h2>
           <form
             onSubmit={async (e) => {
               e.preventDefault();
@@ -528,7 +579,7 @@ return (
                   const newCat = await res.json();
                   setCategories((prev) => [...prev, newCat]);
                   setShowCategoryModal(false);
-                  setCategoryForm({ name: ""});
+                  setCategoryForm({ name: "" });
                 } else {
                   const data = await res.json();
                   setCategoryError(data.error || "Failed to add category.");
@@ -542,12 +593,16 @@ return (
             className="space-y-4"
           >
             <div>
-              <label className="block text-sm mb-1 text-blue-200">Category Name</label>
+              <label className="block text-sm mb-1 text-blue-200">
+                Category Name
+              </label>
               <input
                 type="text"
                 name="name"
                 value={categoryForm.name}
-                onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                onChange={(e) =>
+                  setCategoryForm({ ...categoryForm, name: e.target.value })
+                }
                 required
                 className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
               />
