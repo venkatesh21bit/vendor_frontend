@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { API_URL, fetchWithAuth } from "@/utils/auth_fn";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -31,7 +31,8 @@ const initialCompanyState: Company = {
   email: "",
 };
 
-export default function CompanyPage() {
+
+function CompanyPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isFirstTime = searchParams.get("first") === "true";
@@ -352,5 +353,13 @@ export default function CompanyPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function CompanyPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-white">Loading...</div>}>
+      <CompanyPageContent />
+    </Suspense>
   );
 }
