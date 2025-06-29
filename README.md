@@ -122,7 +122,7 @@ An edge AI package powers vision-based automation:
 This comprehensive guide is designed to help you get started with the frontend of the Ignyte project. It provides step-by-step instructions for installation, configuration, and running the development server, ensuring a smooth setup process for developers at all experience levels.
 
 ## 📦 Setup Instructions
-Make sure the backend is running (if needed for API calls)
+
 - 🌐 Navigate to the frontend folder
   ```bash
   cd frontend
