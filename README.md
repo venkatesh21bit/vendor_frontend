@@ -72,11 +72,13 @@ An edge AI package powers vision-based automation:
 
 ---
 
-## 🛠️ Backend Overview (Deployed and Handled Privately in Separate Repository)
+## 🛠️ Backend Overview (Deployed and Handled Privately in Separate Repository) 
+>**Note**: Just for information 
 ## 📺 Demo Preview
 
 ![Demo](public/IOT-Demo.gif)
 
+Watch the full backend demo here 👉 [Watch on YouTube](https://www.youtube.com/watch?v=Dpkl4f1OeJ0)
 > Built using Django and Django REST Framework — logic and automation powered from the backend.
 
 ### 🔄 Automatic Order Allocation
