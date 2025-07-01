@@ -1,0 +1,48 @@
+name: AI Issue Summarizer
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Issue Info
+        id: issue
+        run: |
+          echo "ISSUE_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+          echo "ISSUE_BODY=${{ github.event.issue.body }}" >> $GITHUB_ENV
+          echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
+
+      - name: Call OpenAI GPT-4o API
+        id: gpt
+        run: |
+          RESPONSE=$(curl https://api.openai.com/v1/chat/completions \
+            -s \
+            -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "model": "gpt-4o",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "You are a helpful GitHub assistant. Summarize the issue in one paragraph."
+                },
+                {
+                  "role": "user",
+                  "content": "Issue title: ${{ env.ISSUE_TITLE }}\n\nIssue body: ${{ env.ISSUE_BODY }}"
+                }
+              ]
+            }' | jq -r '.choices[0].message.content')
+
+          echo "SUMMARY<<EOF" >> $GITHUB_ENV
+          echo "$RESPONSE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Comment on Issue
+        run: |
+          gh issue comment ${{ env.ISSUE_NUMBER }} --body "**🧠 AI Summary:** ${{ env.SUMMARY }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
