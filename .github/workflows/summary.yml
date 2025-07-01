@@ -1,48 +1,47 @@
-name: Summarize new issues
+name: AI Issue Summarizer
 
 on:
   issues:
     types: [opened]
 
 jobs:
-  summary:
+  summarize:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      models: read
-      pull-requests: write
-      contents: read
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run AI inference
-        id: inference
-        uses: actions/ai-inference@v1
-        with:
-          prompt: |
-            Summarize the following GitHub issue in one paragraph:
-            Title: ${{ github.event.issue.title }}
-            Body: ${{ github.event.issue.body }}
-
-      - name: Install GitHub CLI
-        run: sudo apt install gh -y
-
-      - name: Debug AI response
-        run: echo "${{ toJson(steps.inference.outputs) }}"
-
-      - name: Comment with AI summary
+      - name: Extract issue info
+        id: vars
         run: |
-         gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-         if [[ -z "${{ steps.inference.outputs.response }}" ]]; then
-            echo "AI inference step did not produce a response. Skipping comment."
-            exit 1
-         fi
-         gh issue comment ${{ github.event.issue.number }} --body "${{ steps.inference.outputs.response }}"
-         if: steps.inference.outputs.response != ''
-         run: |
-           gh issue comment ${{ github.event.issue.number }} --body "${{ steps.inference.outputs.response }}"
- 
+          echo "TITLE=$(echo "${{ github.event.issue.title }}" | sed 's/"/\\"/g')" >> $GITHUB_ENV
+          echo "BODY=$(echo "${{ github.event.issue.body }}" | sed 's/"/\\"/g')" >> $GITHUB_ENV
+          echo "NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
+
+      - name: Call OpenAI to summarize
+        id: gpt
+        run: |
+          RESPONSE=$(curl https://api.openai.com/v1/chat/completions \
+            -s \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
+            -d '{
+              "model": "gpt-3.5-turbo",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "You are a helpful assistant that summarizes GitHub issues in one paragraph."
+                },
+                {
+                  "role": "user",
+                  "content": "Summarize this issue:\n\nTitle: '${{ env.TITLE }}'\n\nBody: '${{ env.BODY }}'"
+                }
+              ]
+            }' | jq -r '.choices[0].message.content')
+          echo "RESPONSE<<EOF" >> $GITHUB_ENV
+          echo "$RESPONSE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Post comment to issue
+        run: |
+          gh issue comment ${{ env.NUMBER }} --body "${{ env.RESPONSE }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
