@@ -26,20 +26,20 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
             -H "Content-Type: application/json" \
             -d @- <<JSON
-{
-  "model": "gpt-4o",
-  "messages": [
-    {
-      "role": "system",
-      "content": "You are a helpful GitHub assistant. Summarize the issue in one paragraph."
-    },
-    {
-      "role": "user",
-      "content": "Issue title: $ISSUE_TITLE\n\nIssue body: $ISSUE_BODY"
-    }
-  ]
-}
-JSON
+            {
+              "model": "gpt-4o",
+              "messages": [
+             {
+               "role": "system",
+               "content": "You are a helpful GitHub assistant. Summarize the issue in one paragraph."
+             },
+            {
+               "role": "user",
+               "content": "Issue title: $ISSUE_TITLE\n\nIssue body: $ISSUE_BODY"
+           }
+          ]
+          }
+          JSON
           )
 
           # Safely write multiline summary using heredoc syntax
