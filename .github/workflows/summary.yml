@@ -28,6 +28,9 @@ jobs:
       - name: Install GitHub CLI
         run: sudo apt install gh -y
 
+      - name: Debug AI response
+        run: echo "${{ toJson(steps.inference.outputs) }}"
+
       - name: Comment with AI summary
         run: |
          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
