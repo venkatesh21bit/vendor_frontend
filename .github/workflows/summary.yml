@@ -30,7 +30,11 @@ jobs:
 
       - name: Comment with AI summary
         run: |
-          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-          gh issue comment ${{ github.event.issue.number }} --body "${{ steps.inference.outputs.response }}"
+         gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+         if [[ -z "${{ steps.inference.outputs.response }}" ]]; then
+            echo "AI inference step did not produce a response. Skipping comment."
+            exit 1
+         fi
+         gh issue comment ${{ github.event.issue.number }} --body "${{ steps.inference.outputs.response }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
