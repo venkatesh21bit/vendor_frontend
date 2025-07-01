@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      models: read
+      pull-requests: write
       contents: read
 
     steps:
@@ -25,10 +25,12 @@ jobs:
             Title: ${{ github.event.issue.title }}
             Body: ${{ github.event.issue.body }}
 
+      - name: Install GitHub CLI
+        run: sudo apt install gh -y
+
       - name: Comment with AI summary
         run: |
-          gh issue comment $ISSUE_NUMBER --body '${{ steps.inference.outputs.response }}'
+          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+          gh issue comment ${{ github.event.issue.number }} --body "${{ steps.inference.outputs.response }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          RESPONSE: ${{ steps.inference.outputs.response }}
