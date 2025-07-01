@@ -9,16 +9,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Extract issue info
+      - name: Format inputs
         id: vars
         run: |
-          echo "TITLE=$(echo "${{ github.event.issue.title }}" | sed 's/"/\\"/g')" >> $GITHUB_ENV
-          echo "BODY=$(echo "${{ github.event.issue.body }}" | sed 's/"/\\"/g')" >> $GITHUB_ENV
+          echo "TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+          echo "BODY=${{ github.event.issue.body }}" >> $GITHUB_ENV
           echo "NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
 
-      - name: Call OpenAI to summarize
+      - name: Summarize with OpenAI
         id: gpt
         run: |
+          echo "Calling OpenAI..."
           RESPONSE=$(curl https://api.openai.com/v1/chat/completions \
             -s \
             -H "Content-Type: application/json" \
@@ -28,20 +29,22 @@ jobs:
               "messages": [
                 {
                   "role": "system",
-                  "content": "You are a helpful assistant that summarizes GitHub issues in one paragraph."
+                  "content": "You are a helpful assistant that summarizes GitHub issues."
                 },
                 {
                   "role": "user",
-                  "content": "Summarize this issue:\n\nTitle: '${{ env.TITLE }}'\n\nBody: '${{ env.BODY }}'"
+                  "content": "Summarize this GitHub issue:\n\nTitle: '${{ env.TITLE }}'\n\nBody: '${{ env.BODY }}'"
                 }
               ]
             }' | jq -r '.choices[0].message.content')
-          echo "RESPONSE<<EOF" >> $GITHUB_ENV
+
+          echo "SUMMARY<<EOF" >> $GITHUB_ENV
           echo "$RESPONSE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Post comment to issue
+      - name: Post summary comment
         run: |
-          gh issue comment ${{ env.NUMBER }} --body "${{ env.RESPONSE }}"
+          echo "Posting comment..."
+          gh issue comment ${{ env.NUMBER }} --body "**🧠 AI Summary:** ${{ env.SUMMARY }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
