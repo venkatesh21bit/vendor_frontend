@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { fetchWithAuth, API_URL } from "@/utils/auth_fn"
+import { authStorage } from "@/utils/localStorage"
 import { useRouter } from "next/navigation"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { FileText } from "lucide-react"
 import { useReactToPrint } from "react-to-print"
-import html2pdf from "html2pdf.js";
+// Dynamic import for html2pdf to avoid SSR issues
+let html2pdf: any;
 // Fallback Button Component using div to avoid button conflicts
 type FallbackButtonProps = {
   children: React.ReactNode
@@ -161,8 +163,8 @@ export default function VendorBills() {
   useEffect(() => {
     const fetchBills = async () => {
       try {
-        const token = localStorage.getItem("access_token")
-        const companyId = localStorage.getItem("company_id")
+        const token = authStorage.getAccessToken()
+        const companyId = authStorage.getCompanyId()
         if (!token || !companyId) {
           console.warn("Missing token or company ID")
           return
@@ -225,10 +227,21 @@ export default function VendorBills() {
   })
 
   // Black & White download handler
-  const handleDownload = React.useCallback(() => {
+  const handleDownload = React.useCallback(async () => {
   if (!selectedBill || !printRef.current) {
     console.error("Cannot download: missing bill or ref");
     return;
+  }
+
+  // Dynamic import to avoid SSR issues
+  if (!html2pdf) {
+    try {
+      const html2pdfModule = await import('html2pdf.js');
+      html2pdf = html2pdfModule.default;
+    } catch (error) {
+      console.error("Failed to load html2pdf:", error);
+      return;
+    }
   }
 
   // Optional: Add a class for print styling
