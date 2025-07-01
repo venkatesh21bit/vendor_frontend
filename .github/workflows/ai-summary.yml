@@ -10,10 +10,12 @@ jobs:
 
     steps:
       - name: Extract Issue Info
-        id: issue
+        id: extract
         run: |
           echo "ISSUE_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
-          echo "ISSUE_BODY=${{ github.event.issue.body }}" >> $GITHUB_ENV
+          echo "ISSUE_BODY<<EOF" >> $GITHUB_ENV
+          echo "${{ github.event.issue.body }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
           echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
 
       - name: Call OpenAI GPT-4o API
@@ -23,26 +25,39 @@ jobs:
             -s \
             -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "model": "gpt-4o",
-              "messages": [
-                {
-                  "role": "system",
-                  "content": "You are a helpful GitHub assistant. Summarize the issue in one paragraph."
-                },
-                {
-                  "role": "user",
-                  "content": "Issue title: ${{ env.ISSUE_TITLE }}\n\nIssue body: ${{ env.ISSUE_BODY }}"
-                }
-              ]
-            }' | jq -r '.choices[0].message.content')
+            -d @- <<JSON
+{
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful GitHub assistant. Summarize the issue in one paragraph."
+    },
+    {
+      "role": "user",
+      "content": "Issue title: $ISSUE_TITLE\n\nIssue body: $ISSUE_BODY"
+    }
+  ]
+}
+JSON
+          )
 
-          echo "SUMMARY<<EOF" >> $GITHUB_ENV
-          echo "$RESPONSE" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          # Safely write multiline summary using heredoc syntax
+          {
+            echo "SUMMARY<<EOF"
+            echo "$RESPONSE"
+            echo "EOF"
+          } >> $GITHUB_ENV
 
-      - name: Comment on Issue
+        env:
+          OPENAIAPIKEY: ${{ secrets.OPENAIAPIKEY }}
+          ISSUE_TITLE: ${{ env.ISSUE_TITLE }}
+          ISSUE_BODY: ${{ env.ISSUE_BODY }}
+
+      - name: Comment on Issue with Summary
         run: |
-          gh issue comment ${{ env.ISSUE_NUMBER }} --body "**🧠 AI Summary:** ${{ env.SUMMARY }}"
+          gh issue comment "$ISSUE_NUMBER" --body "**🧠 AI Summary:** $SUMMARY"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ env.ISSUE_NUMBER }}
+          SUMMARY: ${{ env.SUMMARY }}
