@@ -39,5 +39,9 @@ jobs:
             exit 1
          fi
          gh issue comment ${{ github.event.issue.number }} --body "${{ steps.inference.outputs.response }}"
+         if: steps.inference.outputs.response != ''
+         run: |
+           gh issue comment ${{ github.event.issue.number }} --body "${{ steps.inference.outputs.response }}"
+ 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
