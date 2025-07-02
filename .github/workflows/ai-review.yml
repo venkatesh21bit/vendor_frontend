@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Checkout Repo (required for gh CLI)
         uses: actions/checkout@v3
 
       - name: Extract Issue Info
@@ -42,37 +42,50 @@ jobs:
       - name: Get Label from GPT
         id: gpt
         run: |
-          REQUEST_DATA=$(cat <<EOF
+          echo "Calling GPT for labeling..."
+          echo "Title: $ISSUE_TITLE"
+          echo "Body: $ISSUE_BODY"
+
+          RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
+            -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
+            -H "Content-Type: application/json" \
+            -d @- <<EOF
           {
             "model": "gpt-4o",
             "messages": [
-              {
-                "role": "system",
-                "content": "You are a GitHub assistant. Classify this GitHub issue using only one of these labels: bug, feature, enhancement, question. Just return the single label."
-              },
-              {
-                "role": "user",
-                "content": "Issue title: ${ISSUE_TITLE}\n\nIssue body: ${ISSUE_BODY}"
-              }
-            ],
-            "max_tokens": 10,
-            "temperature": 0
+            {
+              "role": "system",
+               "content": "Classify this GitHub issue into one label: bug, feature, enhancement, or question. Only return the label as one word, in lowercase."
+            },
+          {
+            "role": "user",
+            "content": "Issue title: $ISSUE_TITLE\n\nIssue body: $ISSUE_BODY"
           }
-          EOF               
-                 )
+          ],
+          "max_tokens": 10,
+          "temperature": 0
+          }
+          EOF
+          )
 
-          LABEL=$(curl -s https://api.openai.com/v1/chat/completions \
-            -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
-            -H "Content-Type: application/json" \
-            -d "$REQUEST_DATA" | jq -r '.choices[0].message.content' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+          echo "Raw GPT response:"
+          echo "$RESPONSE"
+
+          LABEL=$(echo "$RESPONSE" | jq -r '.choices[0].message.content' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+
+          if [ "$LABEL" = "null" ] || [ -z "$LABEL" ]; then
+            echo "❌ No valid label returned by GPT."
+            exit 1
+          fi
 
           echo "LABEL=$LABEL" >> $GITHUB_ENV
-          echo "Predicted label: $LABEL"
+          echo "✅ Predicted label: $LABEL"
 
       - name: Apply label to issue
-        if: env.LABEL != ''
         run: |
-          echo "Labeling issue #${ISSUE_NUMBER} as '${LABEL}'"
+          echo "🔖 Labeling issue #${ISSUE_NUMBER} as '${LABEL}'"
           gh issue edit "$ISSUE_NUMBER" --add-label "$LABEL"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ env.ISSUE_NUMBER }}
+          LABEL: ${{ env.LABEL }}
