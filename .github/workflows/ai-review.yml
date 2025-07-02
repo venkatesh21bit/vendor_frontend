@@ -1,17 +1,18 @@
-name: AI Code Reviewer
+name: AI Code Reviewer & Issue Labeler
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
+    types: [opened, synchronize]
   issues:
-     types:
-       - opened
+    types: [opened]
+
 permissions: write-all
+
 jobs:
   review:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -19,7 +20,57 @@ jobs:
       - name: AI Code Reviewer
         uses: Vendor-frontend/Vendor-repo-ai@master
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # The GITHUB_TOKEN is there by default so you just need to keep it like it is and not necessarily need to add it as secret as it will throw an error. [More Details](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#about-the-github_token-secret)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAIAPIKEY }}
-          OPENAI_API_MODEL: "gpt-4" # Optional: defaults to "gpt-4"
-          
+          OPENAI_API_MODEL: "gpt-4"
+
+  labeler:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Issue Info
+        id: extract
+        run: |
+          echo "ISSUE_TITLE<<EOF" >> $GITHUB_ENV
+          echo "${{ github.event.issue.title }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          echo "ISSUE_BODY<<EOF" >> $GITHUB_ENV
+          echo "${{ github.event.issue.body }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
+
+      - name: Get Label from GPT
+        id: gpt
+        run: |
+          LABEL=$(curl -s https://api.openai.com/v1/chat/completions \
+            -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "model": "gpt-4o",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "Classify this GitHub issue into one label: bug, feature, enhancement, question. Just return the single label."
+                },
+                {
+                  "role": "user",
+                  "content": "Issue title: '"${ISSUE_TITLE}"'\n\nIssue body: '"${ISSUE_BODY}"'"
+                }
+              ],
+              "max_tokens": 10,
+              "temperature": 0
+            }' | jq -r '.choices[0].message.content' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+
+          echo "LABEL=$LABEL" >> $GITHUB_ENV
+          echo "Predicted label: $LABEL"
+
+      - name: Apply label to issue
+        if: env.LABEL != ''
+        run: |
+          echo "Labeling issue #${ISSUE_NUMBER} as '${LABEL}'"
+          gh issue edit $ISSUE_NUMBER --add-label "$LABEL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
