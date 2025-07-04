@@ -35,42 +35,46 @@ jobs:
       - name: Extract Issue Info
         id: extract
         run: |
-          cat <<EOF >> $GITHUB_ENV  
-          ISSUE_TITLE=${{ github.event.issue.title }} 
-          EOF
-
-          cat <<EOF >> $GITHUB_ENV
-          ISSUE_BODY=${{ github.event.issue.body }}
-          EOF
-
+          # Use proper multiline handling for GitHub environment variables
           echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
+          
+          # Handle title (escape special characters)
+          echo "ISSUE_TITLE<<EOF" >> $GITHUB_ENV
+          echo "${{ github.event.issue.title }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+          # Handle body (escape special characters and newlines)
+          echo "ISSUE_BODY<<EOF" >> $GITHUB_ENV
+          echo "${{ github.event.issue.body }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Get Label from GPT
         id: gpt
         run: |
-          REQUEST_DATA=$(cat <<EOF
-          {
-            "model": "gpt-4o",
-            "messages": [
-              {
-                "role": "system",
-                "content": "You are a GitHub assistant. Classify this GitHub issue using only one of these labels: bug, feature, enhancement, question. Just return the single label."
-              },
-              {
-                "role": "user",
-                "content": "Issue title: ${ISSUE_TITLE}\n\nIssue body: ${ISSUE_BODY}"
-              }
-            ],
-            "max_tokens": 10,
-            "temperature": 0
-          }
-          EOF
-          )
-
-          LABEL=$(curl -s https://api.openai.com/v1/chat/completions \
-            -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
-            -H "Content-Type: application/json" \
-            -d "$REQUEST_DATA" | jq -r '.choices[0].message.content' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+          # Use jq to properly create JSON with escaped content
+          LABEL=$(jq -n \
+            --arg title "$ISSUE_TITLE" \
+            --arg body "$ISSUE_BODY" \
+            '{
+              model: "gpt-4o",
+              messages: [
+                {
+                  role: "system",
+                  content: "You are a GitHub assistant. Classify this GitHub issue using only one of these labels: bug, feature, enhancement, question. Just return the single label."
+                },
+                {
+                  role: "user", 
+                  content: ("Issue title: " + $title + "\n\nIssue body: " + $body)
+                }
+              ],
+              max_tokens: 10,
+              temperature: 0
+            }' | \
+            curl -s https://api.openai.com/v1/chat/completions \
+              -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
+              -H "Content-Type: application/json" \
+              -d @- | \
+            jq -r '.choices[0].message.content' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
 
           echo "LABEL=$LABEL" >> $GITHUB_ENV
           echo "Predicted label: $LABEL"
@@ -82,7 +86,7 @@ jobs:
         run: |
           echo "Labeling issue #${ISSUE_NUMBER} as '${LABEL}'"
           gh issue edit "$ISSUE_NUMBER" --add-label "$LABEL"
-          env:
-           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-           ISSUE_NUMBER: ${{ env.ISSUE_NUMBER }}
-           LABEL: ${{ env.LABEL }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ env.ISSUE_NUMBER }}
+          LABEL: ${{ env.LABEL }}
