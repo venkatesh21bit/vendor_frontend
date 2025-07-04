@@ -35,11 +35,13 @@ jobs:
       - name: Extract Issue Info
         id: extract
         run: |
-          echo "ISSUE_TITLE<<EOF" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          cat <<EOF >> $GITHUB_ENV  
+          ISSUE_TITLE=${{ github.event.issue.title }} 
+          EOF
 
-          echo "ISSUE_BODY<<EOF" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          cat <<EOF >> $GITHUB_ENV
+          ISSUE_BODY=${{ github.event.issue.body }}
+          EOF
 
           echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
 
