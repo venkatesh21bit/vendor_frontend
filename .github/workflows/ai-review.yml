@@ -35,26 +35,15 @@ jobs:
       - name: Extract Issue Info
         id: extract
         run: |
-          # Use proper multiline handling for GitHub environment variables
           echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
-          
-          # Handle title (escape special characters)
-          echo "ISSUE_TITLE<<EOF" >> $GITHUB_ENV
-          echo "${{ github.event.issue.title }}" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          
-          # Handle body (escape special characters and newlines)
-          echo "ISSUE_BODY<<EOF" >> $GITHUB_ENV
-          echo "${{ github.event.issue.body }}" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
+        
       - name: Get Label from GPT
         id: gpt
         run: |
-          # Use jq to properly create JSON with escaped content
+          # Use GitHub context directly in jq to avoid environment variable issues
           LABEL=$(jq -n \
-            --arg title "$ISSUE_TITLE" \
-            --arg body "$ISSUE_BODY" \
+            --arg title '${{ github.event.issue.title }}' \
+            --arg body '${{ github.event.issue.body }}' \
             '{
               model: "gpt-4o",
               messages: [
