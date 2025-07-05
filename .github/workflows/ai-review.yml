@@ -21,7 +21,7 @@ jobs:
         uses: Vendor-Innovate-Solutions/Vendor-repo-ai@master
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAIAPIKEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_API_MODEL: "gpt-4"
 
   labeler:
@@ -67,7 +67,7 @@ jobs:
           
           # Make the API call and capture the response
           API_RESPONSE=$(echo "$JSON_PAYLOAD" | curl -s https://api.openai.com/v1/chat/completions \
-            -H "Authorization: Bearer ${{ secrets.OPENAIAPIKEY }}" \
+            -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d @-)
           
