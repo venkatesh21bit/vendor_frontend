@@ -127,7 +127,11 @@ const handleSubmit = async (e: React.FormEvent) => {
       <Card className="bg-gray-900 text-white border border-gray-700 w-full md:w-96">
         <CardHeader className="pb-2">
           <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
+          <CardDescription className="text-gray-400 border-b border-gray-600 pb-2">
+            Create a new account by filling in the details below
+          </CardDescription>
         </CardHeader>
+        
         <CardContent className="pt-4">
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">

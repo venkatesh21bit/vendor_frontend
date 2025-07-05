@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { forgotPassword, verifyOTP, resetPassword, resendOTP } from "@/utils/auth_fn";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -15,44 +16,160 @@ export default function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const handleVerify = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (username && email) {
-      setStep("otp");
+  // Input validation functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      return "Password must contain at least one lowercase letter.";
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      return "Password must contain at least one uppercase letter.";
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      return "Password must contain at least one number.";
+    }
+    return null;
+  };
+
+  // Clear messages after a timeout
+  const clearMessages = () => {
+    setTimeout(() => {
+      setSuccessMessage("");
       setError("");
-      // In a real application, you would make an API call here to send OTP to user's email
-    } else {
+    }, 5000);
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !email) {
       setError("Please enter both username and email.");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const response = await forgotPassword(username, email);
+      
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setSuccessMessage("OTP sent successfully to your email!");
+        setStep("otp");
+        clearMessages();
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleOtpVerify = (e: React.FormEvent) => {
+  const handleOtpVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp) {
       setError("Please enter the OTP.");
       return;
     }
-    setStep("reset");
+
+    setIsLoading(true);
     setError("");
+    setSuccessMessage("");
+
+    try {
+      const response = await verifyOTP(username, otp);
+      
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setSuccessMessage("OTP verified successfully!");
+        setStep("reset");
+        clearMessages();
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleReset = (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPassword || !confirmPassword) {
       setError("Please fill in both password fields.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError(" Passwords do not match.");
+      setError("Passwords do not match.");
       return;
     }
-    alert("Password reseted successful!");
+
+    // Validate password strength
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+
+    setIsLoading(true);
     setError("");
-    // Navigate to login page after successful password reset
-    setTimeout(() => {
-      router.push("/authentication");
-    }, 1500);
+    setSuccessMessage("");
+
+    try {
+      const response = await resetPassword(username, otp, newPassword, confirmPassword);
+      
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setSuccessMessage("Password reset successful! Redirecting to login...");
+        // Navigate to login page after successful password reset
+        setTimeout(() => {
+          router.push("/authentication");
+        }, 2000);
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setIsLoading(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const response = await resendOTP(username);
+      
+      if (response.error) {
+        setError(response.error);
+      } else {
+        setSuccessMessage("OTP resent successfully! Please check your email.");
+        clearMessages();
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -93,11 +210,13 @@ export default function ForgotPasswordPage() {
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
+              {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                disabled={isLoading}
               >
-                Get OTP
+                {isLoading ? "Sending..." : "Get OTP"}
               </Button>
             </form>
           )}
@@ -122,24 +241,43 @@ export default function ForgotPasswordPage() {
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
+              {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                disabled={isLoading}
               >
-                Verify OTP
+                {isLoading ? "Verifying..." : "Verify OTP"}
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-gray-700 text-gray-400 hover:bg-gray-800"
-                onClick={() => setStep("verify")}
-              >
-                Back
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border-gray-700 text-gray-400 hover:bg-gray-800"
+                  onClick={() => setStep("verify")}
+                  disabled={isLoading}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border-gray-700 text-gray-400 hover:bg-gray-800 disabled:opacity-50"
+                  onClick={handleResendOTP}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending..." : "Resend OTP"}
+                </Button>
+              </div>
             </form>
           )}
           {step === "reset" && (
             <form onSubmit={handleReset} className="flex flex-col gap-6">
+              <div className="text-center mb-4">
+                <p className="text-gray-400 text-sm">
+                  Password must be at least 8 characters with uppercase, lowercase, and number
+                </p>
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="new-password">New Password</Label>
                 <Input
@@ -165,17 +303,20 @@ export default function ForgotPasswordPage() {
                 />
               </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
+              {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                disabled={isLoading}
               >
-                Reset Password
+                {isLoading ? "Resetting..." : "Reset Password"}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 className="w-full border-gray-700 text-gray-400 hover:bg-gray-800"
                 onClick={() => setStep("otp")}
+                disabled={isLoading}
               >
                 Back
               </Button>
@@ -185,4 +326,4 @@ export default function ForgotPasswordPage() {
       </Card>
     </div>
   );
-} 
+}
