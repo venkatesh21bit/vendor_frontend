@@ -1,3 +1,6 @@
+
+import { authStorage } from './localStorage';
+
 const API_URL = "https://vendor-backendproduction.up.railway.app/api";
 
 /**
