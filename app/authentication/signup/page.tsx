@@ -103,7 +103,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         else if (formData.group_name.toLowerCase() === "employee") {
         router.replace("/employee");
       } else if (formData.group_name.toLowerCase() === "retailer") {
-        router.replace("/retailer");
+        router.replace("/retailer/setup");
       } else {
         router.replace("/"); // fallback
       }

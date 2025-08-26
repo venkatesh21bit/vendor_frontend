@@ -1,15 +1,13 @@
 "use client";
 import React from 'react';
-import { Navbar } from '@/components/retailer/Navbar';
 
-export default function RootLayout({
+export default function RetailerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <Navbar/>
+    <div className="min-h-screen bg-neutral-950">
       <main>{children}</main>
     </div>
   );

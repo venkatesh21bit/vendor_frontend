@@ -1,4 +1,5 @@
 import { authStorage } from '../../../utils/localStorage';
+import { API_URL } from '../../../utils/auth_fn';
 
 interface Product {
   id: number;
@@ -31,7 +32,7 @@ export const fetchStockFromAPI = async () => {
     const token = authStorage.getAccessToken();
     if (!token) throw new Error("Authentication token not found. Please log in again.");
 
-    const response = await fetch("http://127.0.0.1:8000/api/stock/", {
+    const response = await fetch(`${API_URL}/retailer/products/`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -70,7 +71,7 @@ export const fetchOrdersFromAPI = async () => {
     const token = authStorage.getAccessToken();
     if (!token) throw new Error("Authentication token not found. Please log in again.");
 
-    const response = await fetch("http://127.0.0.1:8000/api/orders/", {
+    const response = await fetch(`${API_URL}/orders/`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

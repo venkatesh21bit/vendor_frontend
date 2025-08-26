@@ -1,19 +1,18 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { authStorage } from "@/utils/localStorage";
 import Anchor from "@/components/retailer/anchor";
 
 export const NAVLINKS = [
-  { title: "Dashboard", href: "/manufacturer" },
-  { title: "Accounting", href: "/manufacturer/accounting" },
-  { title: "StockCount", href: "/manufacturer/stockCount" },
-  { title: "Connections", href: "/manufacturer/connections" },
-  { title: "Profile", href: "/manufacturer/profile" },
-  { title: "Configuration", href: "/manufacturer/configuration" },
-  { title: "Company", href: "/manufacturer/company" },
+  { title: "Dashboard", href: "/retailer/dashboard" },
+  { title: "Products", href: "/retailer/Products" },
+  { title: "Orders", href: "/retailer/Orders" },
+  { title: "Companies", href: "/retailer/companies" },
+  { title: "Profile", href: "/retailer/Profile" },
 ];
 
-export function Navbar() {
+export function RetailerNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const router = useRouter();
 
@@ -23,15 +22,13 @@ export function Navbar() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          Authorization: `Bearer ${authStorage.getAccessToken()}`,
         },
       });
     } catch (e) {
       // Optionally handle error
     } finally {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("company_id");
+      authStorage.clearAll();
       router.replace("/authentication");
     }
   };
@@ -76,27 +73,27 @@ export function Navbar() {
           </div>
           {/* Logo and desktop nav */}
           <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-            <Link href="/manufacturer" className="flex shrink-0 items-center">
-              {/* SVG Logo */}
+            <Link href="/retailer/dashboard" className="flex shrink-0 items-center">
+              {/* SVG Logo - More reliable than PNG */}
               <svg
                 className="h-10 w-10"
                 viewBox="0 0 100 100"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <rect width="100" height="100" rx="20" fill="#3B82F6"/>
+                <rect width="100" height="100" rx="20" fill="#10B981"/>
                 <path
                   d="M25 30h50v40H25V30zm10 10v20h30V40H35z"
                   fill="white"
                 />
-                <circle cx="30" cy="45" r="3" fill="#3B82F6"/>
-                <circle cx="70" cy="45" r="3" fill="#3B82F6"/>
+                <circle cx="40" cy="45" r="3" fill="#10B981"/>
+                <circle cx="60" cy="45" r="3" fill="#10B981"/>
                 <path
-                  d="M40 50h20v5H40v-5z"
-                  fill="#3B82F6"
+                  d="M30 55h40v8H30v-8z"
+                  fill="#10B981"
                 />
               </svg>
-              <span className="ml-2 text-lg font-bold text-blue-400">Manufacturer</span>
+              <span className="ml-2 text-lg font-bold text-green-400">Retailer</span>
             </Link>
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
