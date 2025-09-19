@@ -1,12 +1,13 @@
 import React from 'react';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Trash2 } from 'lucide-react';
 import { StockItem } from './data';
 
 interface StockTableProps {
   stockData: StockItem[];
+  onDeleteProduct?: (productId: string) => void;
 }
 
-const StockTable: React.FC<StockTableProps> = ({ stockData }) => {
+const StockTable: React.FC<StockTableProps> = ({ stockData, onDeleteProduct }) => {
   return (
     <div className="overflow-x-auto">
       <h2 className="text-lg font-semibold mb-4 text-blue-400">Stock Information</h2>
@@ -22,6 +23,9 @@ const StockTable: React.FC<StockTableProps> = ({ stockData }) => {
                 <th className="text-left py-3 px-4 text-blue-400">Sold</th>
                 <th className="text-left py-3 px-4 text-blue-400">Demanded</th>
                 <th className="text-left py-3 px-4 text-blue-400">Status</th>
+                {onDeleteProduct && (
+                  <th className="text-left py-3 px-4 text-blue-400">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -48,6 +52,21 @@ const StockTable: React.FC<StockTableProps> = ({ stockData }) => {
                       {item.available > item.demanded ? "Sufficient" : "High Demand"}
                     </span>
                   </td>
+                  {onDeleteProduct && (
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete "${item.productName}"?`)) {
+                            onDeleteProduct(item.id);
+                          }
+                        }}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition-colors"
+                        title="Delete Product"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

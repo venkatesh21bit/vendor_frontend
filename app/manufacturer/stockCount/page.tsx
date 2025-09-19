@@ -55,7 +55,7 @@ const UQC_CHOICES = [
 
 export default function StockCountPage() {
   const [activeView, setActiveView] = useState<string>('table');
-  const { stockData, loading, error } = useStockData();
+  const { stockData, loading, error, deleteProduct } = useStockData();
 
   // Add Product Modal State
   const [showModal, setShowModal] = useState(false);
@@ -257,7 +257,11 @@ return (
       <NavigationBar activeView={activeView} setActiveView={setActiveView} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <StockOverview activeView={activeView} stockData={stockData} />
+          <StockOverview 
+            activeView={activeView} 
+            stockData={stockData} 
+            onDeleteProduct={deleteProduct}
+          />
         </div>
         <div className="space-y-6">
           <SidePanel stockData={stockData} />

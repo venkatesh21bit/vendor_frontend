@@ -64,10 +64,27 @@ function CompanyPageContent() {
         const res = await fetchWithAuth(`${API_URL}/company/`);
         if (res.ok) {
           const data = await res.json();
-          setCompanies(data);
-          if (data.length > 0) {
-            setSelectedCompany(data[0]);
-            setFormCompany(data[0]);
+          // Convert _id to id for frontend compatibility
+          const companiesWithId = data.map((company: any) => ({
+            ...company,
+            id: company._id || company.id
+          }));
+          setCompanies(companiesWithId);
+          if (companiesWithId.length > 0) {
+            const company = companiesWithId[0];
+            setSelectedCompany(company);
+            // Ensure all fields are strings to prevent controlled/uncontrolled issues
+            setFormCompany({
+              ...company,
+              name: company.name || "",
+              gstin: company.gstin || "",
+              address: company.address || "",
+              state: company.state || "",
+              city: company.city || "",
+              pincode: company.pincode || "",
+              phone: company.phone || "",
+              email: company.email || "",
+            });
           } else {
             setCompanies([]);
             setSelectedCompany(null);
@@ -93,7 +110,18 @@ function CompanyPageContent() {
   // Select a company from the list
   const handleSelectCompany = (company: Company) => {
     setSelectedCompany(company);
-    setFormCompany(company);
+    // Ensure all fields are strings to prevent controlled/uncontrolled issues
+    setFormCompany({
+      ...company,
+      name: company.name || "",
+      gstin: company.gstin || "",
+      address: company.address || "",
+      state: company.state || "",
+      city: company.city || "",
+      pincode: company.pincode || "",
+      phone: company.phone || "",
+      email: company.email || "",
+    });
     setIsEditing(false);
     setIsCreating(false);
     setMessage("");
@@ -122,14 +150,31 @@ function CompanyPageContent() {
       });
       if (res.ok) {
         const data = await res.json();
-        setCompanies((prev) => [...prev, data]);
-        setSelectedCompany(data);
-        setFormCompany(data);
+        const newCompany = data.company || data; // Handle both response formats
+        // Convert _id to id for frontend compatibility
+        const companyWithId = {
+          ...newCompany,
+          id: newCompany._id || newCompany.id
+        };
+        setCompanies((prev) => [...prev, companyWithId]);
+        setSelectedCompany(companyWithId);
+        // Ensure all fields are strings
+        setFormCompany({
+          ...companyWithId,
+          name: companyWithId.name || "",
+          gstin: companyWithId.gstin || "",
+          address: companyWithId.address || "",
+          state: companyWithId.state || "",
+          city: companyWithId.city || "",
+          pincode: companyWithId.pincode || "",
+          phone: companyWithId.phone || "",
+          email: companyWithId.email || "",
+        });
         setMessage("Company created successfully!");
         setIsEditing(false);
         setIsCreating(false);
         // Store company id for session
-        localStorage.setItem("company_id", data.id);
+        localStorage.setItem("company_id", companyWithId.id);
         // If first time, redirect to dashboard after short delay
         if (isFirstTime) {
           setTimeout(() => {
@@ -138,7 +183,7 @@ function CompanyPageContent() {
         }
       } else {
         const data = await res.json();
-        setError(data.detail || "Failed to create company.");
+        setError(data.error || data.detail || "Failed to create company.");
       }
     } catch {
       setError("Failed to create company.");
@@ -151,26 +196,54 @@ function CompanyPageContent() {
     setError("");
     setMessage("");
     if (!formCompany.id) return;
+    
+    console.log('Updating company with data:', formCompany);
+    console.log('Company ID:', formCompany.id);
+    
     try {
       const res = await fetchWithAuth(`${API_URL}/company/${formCompany.id}/`, {
         method: "PUT",
         body: JSON.stringify(formCompany),
       });
+      
+      console.log('Update response status:', res.status);
+      
       if (res.ok) {
         const data = await res.json();
+        console.log('Update response data:', data);
+        
+        const updatedCompany = data.company || data; // Handle both response formats
+        // Convert _id to id for frontend compatibility
+        const companyWithId = {
+          ...updatedCompany,
+          id: updatedCompany._id || updatedCompany.id
+        };
         setCompanies((prev) =>
-          prev.map((c) => (c.id === data.id ? data : c))
+          prev.map((c) => (c.id === companyWithId.id ? companyWithId : c))
         );
-        setSelectedCompany(data);
-        setFormCompany(data);
+        setSelectedCompany(companyWithId);
+        // Ensure all fields are strings
+        setFormCompany({
+          ...companyWithId,
+          name: companyWithId.name || "",
+          gstin: companyWithId.gstin || "",
+          address: companyWithId.address || "",
+          state: companyWithId.state || "",
+          city: companyWithId.city || "",
+          pincode: companyWithId.pincode || "",
+          phone: companyWithId.phone || "",
+          email: companyWithId.email || "",
+        });
         setMessage("Company details updated!");
         setIsEditing(false);
         setIsCreating(false);
       } else {
         const data = await res.json();
-        setError(data.detail || "Failed to update company.");
+        console.log('Update error response:', data);
+        setError(data.error || data.detail || "Failed to update company.");
       }
-    } catch {
+    } catch (error) {
+      console.log('Update catch error:', error);
       setError("Failed to update company.");
     }
   };
@@ -178,7 +251,18 @@ function CompanyPageContent() {
   // Cancel editing/creating
   const handleCancel = () => {
     if (selectedCompany) {
-      setFormCompany(selectedCompany);
+      // Ensure all fields are strings
+      setFormCompany({
+        ...selectedCompany,
+        name: selectedCompany.name || "",
+        gstin: selectedCompany.gstin || "",
+        address: selectedCompany.address || "",
+        state: selectedCompany.state || "",
+        city: selectedCompany.city || "",
+        pincode: selectedCompany.pincode || "",
+        phone: selectedCompany.phone || "",
+        email: selectedCompany.email || "",
+      });
       setIsEditing(false);
       setIsCreating(false);
     } else {

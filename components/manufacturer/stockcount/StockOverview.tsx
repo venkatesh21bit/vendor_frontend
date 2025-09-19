@@ -7,9 +7,10 @@ import { StockItem } from './data';
 interface StockOverviewProps {
   activeView: string;
   stockData: StockItem[];
+  onDeleteProduct?: (productId: string) => void;
 }
 
-const StockOverview: React.FC<StockOverviewProps> = ({ activeView, stockData }) => {
+const StockOverview: React.FC<StockOverviewProps> = ({ activeView, stockData, onDeleteProduct }) => {
   return (
     <Card className="bg-black border border-blue-400">
       <CardHeader>
@@ -18,7 +19,7 @@ const StockOverview: React.FC<StockOverviewProps> = ({ activeView, stockData }) 
       </CardHeader>
       <CardContent className="text-blue-200">
         {activeView === 'table' ? (
-          <StockTable stockData={stockData} />
+          <StockTable stockData={stockData} onDeleteProduct={onDeleteProduct} />
         ) : (
           <StockCharts stockData={stockData} />
         )}

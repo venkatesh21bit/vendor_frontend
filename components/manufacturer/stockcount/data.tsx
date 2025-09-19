@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 
 
 export interface StockItem {
+  id: string;
   productName: string;
   category: number;
   available: number;
@@ -22,6 +23,27 @@ export const useStockData = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const deleteProduct = async (productId: string) => {
+    try {
+      const response = await fetchWithAuth(`${API_URL}/products/${productId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to delete product");
+      }
+
+      // Remove the product from local state
+      setStockData(prevData => prevData.filter(item => item.id !== productId));
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      setError("Failed to delete product");
+      return false;
+    }
+  };
+
   useEffect(() => {
     const fetchStockData = async () => {
       try {
@@ -37,15 +59,17 @@ export const useStockData = () => {
         const data = await response.json();
         console.log("Fetched stock data:", data);
 
-        const formattedData = Array.isArray(data)
-          ? data.map((item) => ({
-              productName: item.name || "Unknown",
-              category: item.category || 0,
-              available: item.available_quantity || 0,
-              sold: item.total_shipped || 0,
-              demanded: item.total_required_quantity || 0,
-            }))
-          : [];
+        // Handle both paginated response and direct array
+        const products = Array.isArray(data) ? data : (data.results || []);
+
+        const formattedData = products.map((item: any) => ({
+          id: item._id || item.id || "", // Include product ID for deletion
+          productName: item.name || "Unknown",
+          category: item.category || 0,
+          available: item.available_quantity || 0,
+          sold: item.total_shipped || 0,
+          demanded: item.total_required_quantity || 0,
+        }));
 
         setStockData((prevStockData) =>
           JSON.stringify(prevStockData) === JSON.stringify(formattedData)
@@ -68,7 +92,7 @@ export const useStockData = () => {
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
-  return { stockData, loading, error };
+  return { stockData, loading, error, deleteProduct };
 };
 
 export const useCategoryData = () => {
