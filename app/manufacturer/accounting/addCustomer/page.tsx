@@ -126,27 +126,39 @@ export default function RetailerPage() {
     setMessage("");
     try {
       const companyId = localStorage.getItem("company_id");
-      const res = await fetchWithAuth(`${API_URL}/retailers/add/?company=${companyId}`, {
+      const res = await fetchWithAuth(`${API_URL}/retailers/create/?company=${companyId}`, {
         method: "POST",
         body: JSON.stringify({
-          ...form,
+          name: form.name,
+          contact_person: form.contact_person,
+          email: form.email,
+          contact: form.contact,
+          address_line1: form.address_line1,
+          address_line2: form.address_line2,
+          city: form.city,
+          state: form.state,
+          pincode: form.pincode,
+          country: form.country,
+          gstin: form.gstin,
           distance_from_warehouse: Number(form.distance_from_warehouse),
+          is_active: form.is_active,
         }),
       });
       if (res.ok) {
         const data = await res.json();
-        setRetailers((prev) => [...prev, data]);
-        setSelectedRetailer(data);
-        setForm(data);
-        setMessage("Retailer added successfully!");
+        const newRetailer = data.retailer;
+        setRetailers((prev) => [...prev, newRetailer]);
+        setSelectedRetailer(newRetailer);
+        setForm(newRetailer);
+        setMessage("Customer added successfully!");
         setIsEditing(false);
         setIsCreating(false);
       } else {
         const data = await res.json();
-        setError(data.detail || "Failed to add retailer.");
+        setError(data.error || "Failed to add customer.");
       }
     } catch {
-      setError("Failed to add retailer.");
+      setError("Failed to add customer.");
     }
   };
 
